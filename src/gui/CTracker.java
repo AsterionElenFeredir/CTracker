@@ -14,14 +14,17 @@ import java.io.IOException;
 import java.util.Collections;
 
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import model.Actor;
-import model.ActorList;
+import model.Encounter;
+import model.Preferences;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,8 +34,19 @@ public class CTracker extends JFrame{
 	private static final long serialVersionUID = 1L;
 
 	private static CTracker cTracker = null;
-	private ActorList actors = new ActorList();
+//	private Encounter encounter = new Encounter("E1");
+	private static Preferences pref;
+	private static Gson gson;
+	
+	// Panneau principal.
+	JTabbedPane tabbedPan = new JTabbedPane();
 
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @return
+	 */
 	public static CTracker getInstance() {
 		if (null == cTracker)
 			cTracker = new CTracker();
@@ -40,43 +54,48 @@ public class CTracker extends JFrame{
 		return cTracker;
 	}
 
-	// Panneau principal.
-	private JPanel pan = new JPanel();
-
 	public CTracker(){
 		this.setTitle("CTracker");
 		this.setIconImage(new ImageIcon("images/dd_sigle.png").getImage());
 
-		//		this.setSize(800,500);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setSize(dim.width, dim.height);
 		this.setResizable(true);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
+		GsonBuilder builder = new GsonBuilder();
+		// Builder uniquement pour les variables "Exposées" pour éviter de sérialiser des variables comme gson de la classe Preferences (exception au rechargement sinon)
+		builder.setPrettyPrinting().serializeNulls().excludeFieldsWithoutExposeAnnotation();  
+		gson = builder.create();
+		
+		pref = new Preferences(gson);
+		pref.load();
+		
+		tabbedPan.setBackground(Color.BLACK);
+		this.getContentPane().add(tabbedPan);
+		
 		// Construction de la barre de menu.
 		buildMenuBar();
 
+		this.pack();
+		JFrame.setDefaultLookAndFeelDecorated(true);
+		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		this.setVisible(true);
 	}
 
 	/**
-	 * Build Windows and add Box Actors.
-	 * 
-	 * @param actors
+	 * Sort and Rebuild the Windows (when init is changed on an actor for example)
 	 */
-	public void build() {
-		pan.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
-		pan.setBackground(Color.BLACK);
-
-		for (Actor actor : actors.getActorList()) {
+	public void rebuild() {
+		EncounterPanel encounterPanel = (EncounterPanel)tabbedPan.getSelectedComponent();
+		sortActorList();
+		JPanel pan = (JPanel)tabbedPan.getSelectedComponent();
+		pan.removeAll();
+		for (Actor actor : encounterPanel.encounter.getActorList()) {
 			pan.add(new Box(actor));
 		}
-
-		this.getContentPane().add(pan);
-		this.pack();
-		this.setVisible(true);
-
 	}
-
+	
 	/**
 	 * Build menu bar.
 	 */
@@ -87,25 +106,84 @@ public class CTracker extends JFrame{
 		JMenu menu = new JMenu("Actions");
 		menuBar.add(menu);
 
-		JMenuItem saveMenuItem = new JMenuItem("Enregistrer");
-		JMenuItem loadMenuItem = new JMenuItem("Charger");
-		JMenuItem addMenuItem = new JMenuItem("Ajouter");
-		JMenuItem removeMenuItem = new JMenuItem("Supprimer");
+		JMenuItem addActorMenuItem = new JMenuItem("Ajouter un acteur");
+		JMenuItem addEncounterMenuItem = new JMenuItem("Ajouter une rencontre");
+		JMenuItem quickSaveMenuItem = new JMenuItem("Enregistrer");
+		JMenuItem quickLoadMenuItem = new JMenuItem("Recharger");
+		JMenuItem saveMenuItem = new JMenuItem("Enregistrer sous...");
+		JMenuItem loadMenuItem = new JMenuItem("Charger à partir de...");
 
-		menu.add(addMenuItem);
-		menu.add(removeMenuItem);
+
+		menu.add(addActorMenuItem);
+		menu.add(addEncounterMenuItem);
+		menu.addSeparator();
+		menu.add(quickSaveMenuItem);
 		menu.add(saveMenuItem);
+		menu.addSeparator();
+		menu.add(quickLoadMenuItem);
 		menu.add(loadMenuItem);
+
+		addActorMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				{
+					CTracker.getInstance().addActor();
+				}
+			}
+		});
+
+		addEncounterMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				{
+					CTracker.getInstance().addEncounter("New Encounter");
+				}
+			}
+		});
+		
+		quickSaveMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				try {
+					save(pref.getCurrentFile());
+
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
 
 		saveMenuItem.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
 				try {
-					save(actors);
+					File file = chooseFile();
+					if (null != file) {
+						pref.setCurrentFile(file);
+						save(file);
+					}
 
 				} catch (Exception ex) {
 					ex.printStackTrace();
+				}
+			}
+		});
+
+		quickLoadMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				{
+					try {
+						load(pref.getCurrentFile());
+
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
 				}
 			}
 		});
@@ -116,8 +194,11 @@ public class CTracker extends JFrame{
 			{
 				{
 					try {
-						load(actors);
-
+						File file = chooseFile();
+						if (null != file) {
+							pref.setCurrentFile(file);
+							load(file);
+						}
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}
@@ -125,15 +206,6 @@ public class CTracker extends JFrame{
 			}
 		});
 
-		addMenuItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				{
-					CTracker.getInstance().addActor();
-				}
-			}
-		});
 	}
 
 
@@ -142,68 +214,68 @@ public class CTracker extends JFrame{
 	 * 
 	 * @return
 	 */
-	public ActorList getActorList() {
-		return actors;
+	public Encounter getEncounter() {
+		EncounterPanel encounterPanel = (EncounterPanel)tabbedPan.getSelectedComponent();
+		return encounterPanel.encounter;
 	}
 
 	/**
 	 * Set the actor of the current Encounter and refresh the Windows.
 	 * @param actorList
 	 */
-	public void setActorList(ActorList actorList) {
-		this.actors = actorList;
-		sortActorList();
-		pan.removeAll();
-		build();
+	public void setEncounter(Encounter encounter) {
+		int index = tabbedPan.getSelectedIndex();
+		EncounterPanel encounterPanel = (EncounterPanel)tabbedPan.getSelectedComponent();
+		encounterPanel.encounter = encounter;
+		tabbedPan.setTitleAt(index, encounter.encounterName);
+		encounterPanel.removeAll();
+		rebuild();
 	}
 
 	/**
-	 * Sort and Rebuild the Windows (when init is changed on an actor for example)
+	 * Add an Encounter tab.
 	 */
-	public void rebuild() {
-		sortActorList();
-		pan.removeAll();
-		build();
+	public void addEncounter(String name) {
+		EncounterPanel encounterPanel = new EncounterPanel(name);
+		encounterPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
+		encounterPanel.setBackground(Color.BLACK);
+		tabbedPan.addTab(encounterPanel.encounter.encounterName, encounterPanel);
+		tabbedPan.setSelectedComponent(encounterPanel);
 	}
 	
 	/**
 	 * Add an Actor to the encounter and rebuild the Windows.
 	 */
 	public void addActor() {
+		EncounterPanel encounterPanel = (EncounterPanel)tabbedPan.getSelectedComponent();
+
 		// Mise à jour de la liste et redessin de la fenêtre.
-		actors.getActorList().add(new Actor(null, null, 0, 0, 0));
-		sortActorList();
-		pan.removeAll();
-		build();
+		encounterPanel.encounter.getActorList().add(new Actor(null, null, 0, 0, 0));
+		rebuild();
 	}
 
 	/**
 	 * Trie la liste des acteurs.
 	 */
-	public void sortActorList() {
-		Collections.sort(actors.getActorList());
+	public synchronized void sortActorList() {
+		EncounterPanel encounterPanel = (EncounterPanel)tabbedPan.getSelectedComponent();
+		Collections.sort(encounterPanel.encounter.getActorList());
 	}
 
 	/**
 	 * Save Encounter.
 	 * 
 	 * @param actorList
+	 * @param file
+	 * 
 	 * @throws IOException
 	 */
-	public synchronized static void save(ActorList actorList) throws IOException {
+	public synchronized void save(File file) throws IOException {
 		FileWriter fileWriter = null;
-
 		try {
-			GsonBuilder builder = new GsonBuilder();
-			builder.setPrettyPrinting().serializeNulls();
-			Gson gson = builder.create();
-			String path = "resources/data.json";
-			File file = new File(path);
-			fileWriter = new FileWriter(file);
-			//        JsonWriter writer = new JsonWriter(fileWriter);
-			String jsonString = gson.toJson(actorList);
-			System.out.println(jsonString);
-			gson.toJson(actorList, fileWriter);
+			EncounterPanel encounterPanel = (EncounterPanel)tabbedPan.getSelectedComponent();
+			fileWriter = new FileWriter(pref.getCurrentFile());
+			gson.toJson(encounterPanel.encounter, fileWriter);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -222,23 +294,17 @@ public class CTracker extends JFrame{
 	 * Load encounter.
 	 * 
 	 * @param actorList
+	 * @param file
+	 * 
 	 * @throws FileNotFoundException
 	 */
-	public synchronized static void load(ActorList actorList) throws FileNotFoundException {
+	public synchronized void load(File file) throws FileNotFoundException {
 		FileReader fileReader = null;
-
 		try {
-			//		actorList.getActorList().clear();
-			GsonBuilder builder = new GsonBuilder();
-			builder.setPrettyPrinting().serializeNulls();
-			Gson gson = builder.create();
-
-			String path = "resources/data.json";
-			File file = new File(path);
-			fileReader = new FileReader(file);
+			fileReader = new FileReader(pref.getCurrentFile());
 			JsonReader reader = new JsonReader(fileReader);
-			ActorList newActorList = gson.fromJson(reader, ActorList.class);
-			CTracker.getInstance().setActorList(newActorList);
+			Encounter loadedEncounter = gson.fromJson(reader, Encounter.class);
+			setEncounter(loadedEncounter);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -251,6 +317,36 @@ public class CTracker extends JFrame{
 				e.printStackTrace();
 			} 
 		}
+	}
+
+	/**
+	 * Enable to choose a file.
+	 * 
+	 * @return
+	 */
+	public static File chooseFile() {
+		try {
+			// création de la boîte de dialogue
+			JFileChooser dialogue = new JFileChooser(pref.getCurrentFile());
+
+			// affichage
+			dialogue.showOpenDialog(null);
+
+			return dialogue.getSelectedFile();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * Get GSON Builder.
+	 * 
+	 * @return
+	 */
+	public Gson getJsonBuilder() {
+		return gson;
 	}
 }
 

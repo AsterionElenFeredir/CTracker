@@ -2,6 +2,11 @@ package utils;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 
 public class Constants {
@@ -43,5 +48,14 @@ public class Constants {
 	public static final String JP_REF_ICON_FILE_NAME = PropertiesLoader.getLabel(JP_REF_ICON_FILE_NAME_PROPERTY);
 	public static final int JP_ICON_SIZE = ICON_SIZE;
 
+	public static Image TEST_IMAGE = null;
+	
+	static {
+		try {
+			TEST_IMAGE = ImageIO.read(new File("images/test.jpg"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 }

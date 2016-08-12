@@ -6,14 +6,20 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 
 import model.Actor;
 import utils.Constants;
@@ -25,12 +31,17 @@ import utils.ImagesConstants;
  * @author Bruno Marcon
  *
  */
-public class Box extends JPanel {
+public class Box extends JPanel implements MouseListener {
 	private static final long serialVersionUID = 1L;
 
-	final Actor actor;
-	final JLabel caIconLabel;
-	final JLabel initIconLabel;
+	private final Actor actor;
+	private final JLabel caIconLabel;
+	private final JLabel initIconLabel;
+	private Image image = null;
+	private final Border blackBorder = BorderFactory.createLineBorder(Color.BLACK, 5);
+	private final Border redBorder = BorderFactory.createLineBorder(Color.RED,5);
+	private boolean isHighlighted = false;
+
 	/**
 	 * Constructor.
 	 * 
@@ -40,6 +51,9 @@ public class Box extends JPanel {
 		this.actor = actor;
 		caIconLabel = new JLabel();
 		initIconLabel = new JLabel();
+
+		// Set the image of the Box.
+		setImage(actor.imagePath);
 
 		GridBagConstraints c = new GridBagConstraints();
 		setLayout(new GridBagLayout());
@@ -56,11 +70,16 @@ public class Box extends JPanel {
 		JPanel invisiblePanel = new JPanel();
 		invisiblePanel.setOpaque(false);
 		invisiblePanel.setPreferredSize(new Dimension(Constants.BOX_SIZE, 200));
+		addLoadImageListener(invisiblePanel, this);
 		add(invisiblePanel, c);
 
 		c.gridy = 2;
 		c.weighty = 0.2;
 		add(new HPPanel(actor), c);
+
+		addMouseListener(this);
+		setBorder(blackBorder);
+		setFocusable(true);
 	}
 
 	/**
@@ -85,7 +104,7 @@ public class Box extends JPanel {
 		caIconLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 		caIconLabel.setFont(Constants.TITLE_FONT);
 		caIconLabel.setForeground(Color.yellow);
-		caIconLabel.addMouseListener(new CaIconMouseListener());
+		addCAMouseListener(caIconLabel);
 
 		initIconLabel.setText(Integer.toString(actor.init));
 		if(Constants.TEST_MODE == 0)
@@ -94,7 +113,7 @@ public class Box extends JPanel {
 		initIconLabel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 		initIconLabel.setFont(Constants.TITLE_FONT);
 		initIconLabel.setForeground(Color.black);
-		initIconLabel.addMouseListener(new InitIconMouseListener());
+		addInitMouseListener(initIconLabel);
 
 		panel.add(caIconLabel, BorderLayout.WEST);
 		panel.add(initIconLabel, BorderLayout.EAST);
@@ -102,90 +121,208 @@ public class Box extends JPanel {
 		return panel;
 	}
 
+	/**
+	 * Add a listener on the invisible panel to choose and load an image file on mouse click.
+	 * 
+	 * @param panel
+	 * @param box
+	 */
+	public void addLoadImageListener(JPanel panel, final Box box) {
+		panel.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				File file = CTracker.chooseFile();
+				setActorAndBoxImage(file);
+				box.repaint();
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+		});		
+	}
+	
+	/**
+	 * Add a listener on the CA Label to edit the value on mouse click.
+	 * 
+	 * @param label
+	 */
+	public void addCAMouseListener(JLabel label) {
+		label.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String value = JOptionPane.showInputDialog(null,
+						"Enter new value",
+						"Enter value",
+						JOptionPane.QUESTION_MESSAGE);
+
+				try {
+					if(null != value && value.length() > 0) {
+						int intValue = (Integer.parseInt(value));
+						caIconLabel.setText(value);
+						actor.ca = intValue;
+					}
+				} catch (Exception ex) {
+
+				}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+		});		
+	}
+	
+	/**
+	 * Add a listener on the CA Label to edit the value on mouse click.
+	 * 
+	 * @param label
+	 */
+	public void addInitMouseListener(JLabel label) {
+		label.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				String value = JOptionPane.showInputDialog(null,
+						"Enter new value",
+						"Enter value",
+						JOptionPane.QUESTION_MESSAGE);
+
+				try {
+					if(null != value && value.length() > 0) {
+						int intValue = (Integer.parseInt(value));
+						initIconLabel.setText(value);
+						actor.init = intValue;
+						CTracker.getInstance().rebuild();
+					}
+				} catch (Exception ex) {
+
+				}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+		});		
+	}
+	
+	/**
+	 * Switch JPanel selection.
+	 */
+	public void swichtSelection() {
+		if(isHighlighted) 
+			setBorder(blackBorder);
+		else 
+			setBorder(redBorder);
+		
+		isHighlighted=!isHighlighted;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		swichtSelection();		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+	}
 
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		if(null != actor.image)
-			g.drawImage(actor.image, 0, 0, getWidth(), getHeight(), null);
+		if(null != image)
+			g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
 		else {
-			Color c = g.getColor();
-			g.setColor(Color.GRAY.darker());
-			g.fillRect(0, 0, getWidth(), getHeight());
-			g.setColor(c);
+			g.drawImage(Constants.TEST_IMAGE, 0, 0, getWidth(), getHeight(), null);
 		}
 	}
 
-	private class CaIconMouseListener implements MouseListener {
-		@Override
-		public void mouseClicked(MouseEvent e) {
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			String value = JOptionPane.showInputDialog(null,
-					"Enter new value",
-					"Enter value",
-					JOptionPane.QUESTION_MESSAGE);
-
-			try {
-				if(null != value && value.length() > 0) {
-					int intValue = (Integer.parseInt(value));
-					caIconLabel.setText(value);
-					actor.ca = intValue;
-				}
-			} catch (Exception ex) {
-
+	/**
+	 * Set the image of the BOX.
+	 * 
+	 * @param imagePath
+	 */
+	public void setImage(String imagePath) {
+		// ImageIcon image = new ImageIcon(new ImageIcon(imagePath).getImage().getScaledInstance(Constants.BOX_SIZE, Constants.BOX_SIZE, Image.SCALE_DEFAULT));
+		try {
+			if (null != imagePath && imagePath.length() > 0) {
+				File file = new File(imagePath);
+				if (null != file && file.exists())
+					image = ImageIO.read(file);
 			}
-		}
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
-	
-	private class InitIconMouseListener implements MouseListener {
-		@Override
-		public void mouseClicked(MouseEvent e) {
-		}
 
-		@Override
-		public void mousePressed(MouseEvent e) {
-			String value = JOptionPane.showInputDialog(null,
-					"Enter new value",
-					"Enter value",
-					JOptionPane.QUESTION_MESSAGE);
-
-			try {
-				if(null != value && value.length() > 0) {
-					int intValue = (Integer.parseInt(value));
-					initIconLabel.setText(value);
-					actor.init = intValue;
-					CTracker.getInstance().rebuild();
+	/**
+	 * Set the image of the BOX and the imaegPath of the Actor.
+	 * 
+	 * @param file
+	 */
+	public void setActorAndBoxImage(File file) {
+		try {
+			if (null != file && file.exists()) {
+				if (null != file && file.exists()) {
+					image = ImageIO.read(file);
+					actor.imagePath = file.getPath();
 				}
-			} catch (Exception ex) {
-
 			}
-		}
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
+
 }
 
 

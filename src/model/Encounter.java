@@ -1,29 +1,32 @@
 package model;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JPanel;
+
+import com.google.gson.annotations.Expose;
 
 public class Encounter {
-	public String name;
-	public List<Actor> challengers = new ArrayList<Actor>();
+	@Expose(serialize = true)
+	public String encounterName = null;
 	
-	/**
-	 * Constructor without challengers.
-	 * 
-	 * @param name
-	 */
-	public Encounter(String name) {
-		this.name = name;
-	}
+	@Expose(serialize = true)
+	private List<Actor> actorList = new ArrayList<Actor>();
 
 	/**
-	 * Constructor with starting challengers.
-	 * 
-	 * @param name
-	 * @param challengers
+	 * Constructor.
 	 */
-	public Encounter(String name, List<Actor> challengers) {
-		this(name);
-		this.challengers = challengers;
+	public Encounter(String name) {
+		this.encounterName = name;
 	}
+	
+	public List<Actor> getActorList() {
+		return actorList;
+	}
+
+	public void setActorList(List<Actor> actorList) {
+		this.actorList = actorList;
+	}
+	
 }

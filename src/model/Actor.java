@@ -1,19 +1,30 @@
 package model;
 
-import java.awt.Image;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
+import com.google.gson.annotations.Expose;
 
 public class Actor implements Comparable<Actor> {
-	public Image image = null;
-	public String name;
-	public int ca;
-	public int init;
-	public int hp;
-	public int currentHp;
+	@Expose(serialize = true)
+	public String imagePath = null;
 	
+	@Expose(serialize = true)
+	public String name;
+	
+	@Expose(serialize = true)
+	public int ca;
+	
+	@Expose(serialize = true)
+	public int init;
+	
+	@Expose(serialize = true)
+	public int hp;
+	
+	@Expose(serialize = true)
+	public int currentHp;
+
+	/**
+	 * Constructor.
+	 * 
+	 */
 	public Actor() {
 		this(null, null, 0, 0, 0);
 	}
@@ -36,15 +47,9 @@ public class Actor implements Comparable<Actor> {
 		// Start with full HP.
 		this.currentHp = hp;
 		
-//		ImageIcon image = new ImageIcon(new ImageIcon(imagePath).getImage().getScaledInstance(Constants.BOX_SIZE, Constants.BOX_SIZE, Image.SCALE_DEFAULT));
-		try {
-			if (null != imagePath && imagePath.length() > 0) {
-				File file = new File(imagePath);
-				image = ImageIO.read(file);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// Set Image.
+		if (null != imagePath && imagePath.length() > 0)
+			this.imagePath = imagePath;
 	}
 
 	@Override
