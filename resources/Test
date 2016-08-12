@@ -1,0 +1,21 @@
+{
+  "encounterName": "TEST",
+  "actorList": [
+    {
+      "imagePath": null,
+      "name": "Test",
+      "ca": 16,
+      "init": 4,
+      "hp": 60,
+      "currentHp": 30
+    },
+    {
+      "imagePath": null,
+      "name": null,
+      "ca": 14,
+      "init": 0,
+      "hp": 0,
+      "currentHp": 0
+    }
+  ]
+}
