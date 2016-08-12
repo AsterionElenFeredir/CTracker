@@ -241,6 +241,8 @@ public class CTracker extends JFrame{
 		encounterPanel.setBackground(Color.BLACK);
 		tabbedPan.addTab(encounterPanel.encounter.encounterName, encounterPanel);
 		tabbedPan.setSelectedComponent(encounterPanel);
+		int index = tabbedPan.getSelectedIndex();
+		tabbedPan.setTabComponentAt(index, new ButtonTabComponent(tabbedPan));
 	}
 	
 	/**
