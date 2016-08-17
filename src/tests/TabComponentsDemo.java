@@ -53,6 +53,10 @@ import java.awt.event.KeyEvent;
  */
 public class TabComponentsDemo extends JFrame {    
 
+	private int editing_idx = -1;
+	private int len = -1;
+	private Dimension dim;
+	
 	private final int tabNumber = 5;
 	private final JTabbedPane pane = new JTabbedPane();
 	private JMenuItem tabComponentsItem;
