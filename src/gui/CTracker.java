@@ -3,15 +3,17 @@ package gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 
 import javax.swing.ImageIcon;
@@ -22,8 +24,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 
-import utils.Constants;
 import model.Actor;
 import model.Encounter;
 import model.EncounterList;
@@ -33,7 +35,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 
-public class CTracker extends JFrame{
+public class CTracker extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private static CTracker cTracker = null;
@@ -42,7 +44,8 @@ public class CTracker extends JFrame{
 	private static Gson gson;
 
 	// Panneau principal.
-	JTabbedPane tabbedPane = new JTabbedPane();
+	private JTabbedPane tabbedPane = new JTabbedPane();
+	private ArrayList<Box> selection = new ArrayList<Box>();
 
 
 	/**
@@ -66,7 +69,7 @@ public class CTracker extends JFrame{
 		this.setResizable(true);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-		EdiatbleTabbedPaneListener l = new EdiatbleTabbedPaneListener(tabbedPane);
+		EditableTabbedPaneListener l = new EditableTabbedPaneListener(tabbedPane);
 		tabbedPane.addChangeListener(l);
 		tabbedPane.addMouseListener(l);
 
@@ -94,7 +97,7 @@ public class CTracker extends JFrame{
 	 * Sort and Rebuild the Windows (when init is changed on an actor for example)
 	 */
 	public void rebuild() {
-		if (tabbedPane.getComponents().length > 0) {
+		if (tabbedPane.getTabCount() > 0) {
 			EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
 			sortActorList();
 			JPanel pan = (JPanel)tabbedPane.getSelectedComponent();
@@ -108,8 +111,10 @@ public class CTracker extends JFrame{
 				// non visible en entier car masqué par le bouton de fermeture
 				Component comp = tabbedPane.getTabComponentAt(i);
 				comp.invalidate();
-//				comp.repaint();
+				//				comp.repaint();
 			}
+
+			CTracker.getInstance().repaint();
 		}
 	}
 
@@ -127,6 +132,8 @@ public class CTracker extends JFrame{
 				}
 			}
 		}
+
+		CTracker.getInstance().repaint();
 	}
 
 	/**
@@ -147,6 +154,7 @@ public class CTracker extends JFrame{
 		JMenuItem saveAllMenuItem = new JMenuItem("Enregistrer toutes les rencontres...");
 		JMenuItem loadMenuItem = new JMenuItem("Charger une rencontre...");
 		JMenuItem loadEncounterListMenuItem = new JMenuItem("Charger une liste de rencontre...");
+		JMenuItem deleteActorsMenuItem = new JMenuItem("Supprimer les acteurs sélectionnés");
 
 
 		menu.add(addActorMenuItem);
@@ -159,6 +167,13 @@ public class CTracker extends JFrame{
 		menu.add(quickLoadMenuItem);
 		menu.add(loadMenuItem);
 		menu.add(loadEncounterListMenuItem);
+		menu.add(deleteActorsMenuItem);
+
+		addActorMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.CTRL_MASK));
+		addEncounterMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E,InputEvent.CTRL_MASK));
+		quickSaveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
+		quickLoadMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0));
+		deleteActorsMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 
 
 		addActorMenuItem.addActionListener(new ActionListener()
@@ -167,6 +182,19 @@ public class CTracker extends JFrame{
 			{
 				{
 					CTracker.getInstance().addActor();
+				}
+			}
+		});
+
+		deleteActorsMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				{
+					if (tabbedPane.getTabCount() > 0 && selection.isEmpty() == false) {
+						EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
+						CTracker.getInstance().removeSelectedBoxes(encounterPanel);
+					}
 				}
 			}
 		});
@@ -297,13 +325,14 @@ public class CTracker extends JFrame{
 	 * @param actorList
 	 */
 	public void setEncounter(Encounter encounter) {
-		if (tabbedPane.getComponents().length == 0) {
-			EncounterPanel encounterPanel = new EncounterPanel(encounter.encounterName);
-			tabbedPane.add(encounterPanel);
+		EncounterPanel encounterPanel = null;
+
+		if (tabbedPane.getTabCount() == 0) {
+			addEncounter(encounter);
 		}
 
 		int index = tabbedPane.getSelectedIndex();
-		EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
+		encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
 		encounterPanel.encounter = encounter;
 		tabbedPane.setTitleAt(index, encounter.encounterName);
 		encounterPanel.removeAll();
@@ -336,18 +365,20 @@ public class CTracker extends JFrame{
 	 * Add an Actor to the encounter and rebuild the Windows.
 	 */
 	public void addActor() {
-		EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
+		if (tabbedPane.getTabCount() > 0) {
+			EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
 
-		// Mise à jour de la liste et redessin de la fenêtre.
-		encounterPanel.encounter.getActorList().add(new Actor(null, null, 0, 0, 0));
-		rebuild();
+			// Mise à jour de la liste et redessin de la fenêtre.
+			encounterPanel.encounter.getActorList().add(new Actor(null, null, 0, 0, 0));
+			rebuild();
+		}
 	}
 
 	/**
 	 * Trie la liste des acteurs.
 	 */
 	public synchronized void sortActorList() {
-		if (tabbedPane.getComponents().length > 0) {
+		if (tabbedPane.getTabCount() > 0) {
 			EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
 			Collections.sort(encounterPanel.encounter.getActorList());
 		}
@@ -514,6 +545,61 @@ public class CTracker extends JFrame{
 	 */
 	public Gson getJsonBuilder() {
 		return gson;
+	}
+
+	/**
+	 * Add a Box to the selection.
+	 * 
+	 * @param box
+	 */
+	public void addSelection(Box box) {
+		synchronized (selection) {
+			selection.add(box);
+		}
+	}
+
+	/**
+	 * Remove a Box from the selection.
+	 * 
+	 * @param box
+	 */
+	public void removeSelection(Box box) {
+		synchronized (selection) {
+			selection.remove(box);
+		}
+	}
+
+	/**
+	 * Reset the box selection (do not remove boxes !).
+	 */
+	public void resetSelection() {
+		synchronized (selection) {
+			if (selection.isEmpty())
+				return;
+
+			for (Box box : selection) {
+				box.resetSelection();
+			}
+			selection.clear();
+		}
+		repaint();
+	}
+
+	/**
+	 * Remove all box selected.
+	 */
+	public void removeSelectedBoxes(EncounterPanel encounterPanel) {
+		synchronized (selection) {
+			if (selection.isEmpty())
+				return;
+
+			for (Box box : selection) {
+				encounterPanel.encounter.getActorList().remove(box.getActor());
+				encounterPanel.remove(box);
+			}
+			selection.clear();
+		}
+		repaint();
 	}
 }
 

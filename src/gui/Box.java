@@ -70,7 +70,6 @@ public class Box extends JPanel implements MouseListener {
 		JPanel invisiblePanel = new JPanel();
 		invisiblePanel.setOpaque(false);
 		invisiblePanel.setPreferredSize(new Dimension(Constants.BOX_SIZE, 200));
-		addLoadImageListener(invisiblePanel, this);
 		add(invisiblePanel, c);
 
 		c.gridy = 2;
@@ -82,6 +81,15 @@ public class Box extends JPanel implements MouseListener {
 		setFocusable(true);
 	}
 
+	/**
+	 * Return the actor.
+	 * 
+	 * @return
+	 */
+	public Actor getActor() {
+		return actor;
+	}
+	
 	/**
 	 * Build name label.
 	 * 
@@ -121,40 +129,7 @@ public class Box extends JPanel implements MouseListener {
 		return panel;
 	}
 
-	/**
-	 * Add a listener on the invisible panel to choose and load an image file on mouse click.
-	 * 
-	 * @param panel
-	 * @param box
-	 */
-	public void addLoadImageListener(JPanel panel, final Box box) {
-		panel.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				File file = CTracker.chooseFile();
-				setActorAndBoxImage(file);
-				box.repaint();
-			}
 
-			@Override
-			public void mousePressed(MouseEvent e) {
-				
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-		});		
-	}
-	
 	/**
 	 * Add a listener on the CA Label to edit the value on mouse click.
 	 * 
@@ -182,7 +157,7 @@ public class Box extends JPanel implements MouseListener {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				
+
 			}
 
 			@Override
@@ -198,7 +173,7 @@ public class Box extends JPanel implements MouseListener {
 			}
 		});		
 	}
-	
+
 	/**
 	 * Add a listener on the CA Label to edit the value on mouse click.
 	 * 
@@ -227,7 +202,6 @@ public class Box extends JPanel implements MouseListener {
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				
 			}
 
 			@Override
@@ -243,26 +217,48 @@ public class Box extends JPanel implements MouseListener {
 			}
 		});		
 	}
-	
+
 	/**
 	 * Switch JPanel selection.
 	 */
 	public void swichtSelection() {
-		if(isHighlighted) 
+		if(isHighlighted) {
 			setBorder(blackBorder);
-		else 
+			CTracker.getInstance().removeSelection(this);
+		}
+		else {
 			setBorder(redBorder);
-		
+			CTracker.getInstance().addSelection(this);
+		}
+
 		isHighlighted=!isHighlighted;
+	}
+
+	/**
+	 * Reset selection in response of the CTracker frame. Do not add "CTracker.getInstance().removeSelection(this);" in 
+	 * this method to avoid loop or concurrent modifications of the ArrayList in CTracker.
+	 */
+	public void resetSelection() {
+		if(isHighlighted) {
+			setBorder(blackBorder);
+			isHighlighted=false;
+		}
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if (e.getClickCount() == 2) {
+			File file = CTracker.chooseFile();
+			setActorAndBoxImage(file);
+			this.repaint();
+		} else {
+			swichtSelection();		
+		}
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		swichtSelection();		
+		//		swichtSelection();		
 	}
 
 	@Override

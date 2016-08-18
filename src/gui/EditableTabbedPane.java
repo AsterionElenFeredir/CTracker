@@ -10,7 +10,7 @@ public class EditableTabbedPane extends JTabbedPane {
 	 * Constructor.
 	 */
 	public EditableTabbedPane() {
-		EdiatbleTabbedPaneListener l = new EdiatbleTabbedPaneListener(this);
+		EditableTabbedPaneListener l = new EditableTabbedPaneListener(this);
 	        addChangeListener(l);
 	        addMouseListener(l);
 	}

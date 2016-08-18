@@ -24,7 +24,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class EdiatbleTabbedPaneListener extends MouseAdapter implements ChangeListener, DocumentListener {
+public class EditableTabbedPaneListener extends MouseAdapter implements ChangeListener, DocumentListener {
 	private final JTextField editor = new JTextField();
 	private final JTabbedPane tabbedPane;
 	private int editingIdx = -1;
@@ -71,7 +71,7 @@ public class EdiatbleTabbedPaneListener extends MouseAdapter implements ChangeLi
 			}
 		}
 	};
-	public EdiatbleTabbedPaneListener(JTabbedPane tabbedPane) {
+	public EditableTabbedPaneListener(JTabbedPane tabbedPane) {
 		super();
 		this.tabbedPane = tabbedPane;
 		editor.setBorder(BorderFactory.createEmptyBorder());
