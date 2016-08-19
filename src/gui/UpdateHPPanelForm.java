@@ -30,10 +30,15 @@ public class UpdateHPPanelForm extends JDialog {
 	private HPPanel hpPanel;
 	private JTextField damageTextField = new JTextField(0);
 	private JTextField cureTextField = new JTextField(0);
-	private JTextField addTempPVTextField = new JTextField(0);
-	private JTextField removeTempPVTextField = new JTextField(0);
-	private JTextField maxHPTextField = new JTextField(0);
-
+	private JTextField tempPVTextField = new JTextField(0);
+	private JTextField tempPVTimeTextField = new JTextField(0);
+//	private JTextField removeTempPVTextField = new JTextField(0);
+	private JTextField hitPointsTextField = new JTextField(0);
+	private JTextField regenerationTextField = new JTextField(0);
+	private JTextField regenerationTimeTextField = new JTextField(0);
+	private JTextField damageReductionTimeTextField = new JTextField(0);
+	private JTextField damageReductionTextField = new JTextField(0);
+	
 	/**
 	 * Constructor.
 	 */
@@ -49,9 +54,15 @@ public class UpdateHPPanelForm extends JDialog {
 
 		damageTextField.setPreferredSize(new Dimension(60, 20));
 		cureTextField.setPreferredSize(new Dimension(60, 20));
-		addTempPVTextField.setPreferredSize(new Dimension(60, 20));
-		removeTempPVTextField.setPreferredSize(new Dimension(60, 20));
-		maxHPTextField.setPreferredSize(new Dimension(60, 20));
+		hitPointsTextField.setPreferredSize(new Dimension(60, 20));
+		tempPVTextField.setPreferredSize(new Dimension(60, 20));
+		tempPVTimeTextField.setPreferredSize(new Dimension(60, 20));
+//		removeTempPVTextField.setPreferredSize(new Dimension(60, 20));
+		regenerationTextField.setPreferredSize(new Dimension(60, 20));
+		regenerationTimeTextField.setPreferredSize(new Dimension(60, 20));
+		regenerationTextField.setPreferredSize(new Dimension(60, 20));
+		damageReductionTextField.setPreferredSize(new Dimension(60, 20));
+		damageReductionTimeTextField.setPreferredSize(new Dimension(60, 20));
 
 
 		JPanel mainPanel = new JPanel(new BorderLayout());
@@ -65,8 +76,12 @@ public class UpdateHPPanelForm extends JDialog {
 		JLabel damageLabel = new JLabel("Dégâts");
 		JLabel cureLabel = new JLabel("Soins");
 		JLabel addTempPVLabel = new JLabel("Ajout de PV Temp");
-		JLabel removeTempPVLabel = new JLabel("Réduction de PV Temp");
+//		JLabel removeTempPVLabel = new JLabel("Réduction de PV Temp");
 		JLabel maxHPLabel = new JLabel("HP");
+		JLabel damageReductionLabel = new JLabel("Réduction de dégâts");
+		JLabel timeLabel = new JLabel("Durée (Rd ou Mn)");
+		JLabel regenerationLabel = new JLabel("Régénération");
+
 
 //		JButton validateButton = new JButton("Modifier");
 		Action action = new AbstractAction("doSomething") {
@@ -114,15 +129,15 @@ public class UpdateHPPanelForm extends JDialog {
 
 		c.gridx = 1;
 		c.gridy = 2;
-		fieldsPanel.add(addTempPVTextField, c);
+		fieldsPanel.add(tempPVTextField, c);
 
 		c.gridx = 0;
 		c.gridy = 3;
-		fieldsPanel.add(removeTempPVLabel, c);
+		fieldsPanel.add(damageReductionLabel, c);
 
 		c.gridx = 1;
 		c.gridy = 3;
-		fieldsPanel.add(removeTempPVTextField, c);
+		fieldsPanel.add(damageReductionTextField, c);
 
 		c.gridx = 0;
 		c.gridy = 4;
@@ -130,7 +145,7 @@ public class UpdateHPPanelForm extends JDialog {
 
 		c.gridx = 1;
 		c.gridy = 4;
-		fieldsPanel.add(maxHPTextField, c);
+		fieldsPanel.add(hitPointsTextField, c);
 		
 		mainPanel.add(fieldsPanel, BorderLayout.CENTER);
 		mainPanel.add(validateButton, BorderLayout.SOUTH);
@@ -183,7 +198,7 @@ public class UpdateHPPanelForm extends JDialog {
 
 		int hp = 0;
 		try {
-			hp = Integer.parseInt(maxHPTextField.getText());
+			hp = Integer.parseInt(hitPointsTextField.getText());
 
 			// Au moins 1 PV !
 			if (hp < 1)
