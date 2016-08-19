@@ -10,9 +10,18 @@ import com.google.gson.stream.JsonReader;
 
 public class Preferences {
 	@Expose(serialize = true)
-	public String currentFilePath = "resources/data.json";
-	public File currentFile = new File(currentFilePath);
-	public Gson gson;
+	private String currentEncounterFilePath = "encounters/default.enc";
+	private File currentEncounterFile = new File(currentEncounterFilePath);
+
+	@Expose(serialize = true)
+	private String currentEncounterListFilePath = "encounters/default.all";
+	private File currentEncounterListFile = new File(currentEncounterListFilePath);
+
+	@Expose(serialize = true)
+	private String currentImageFilePath = "images/default.jpg";
+	private File currentImageFile = new File(currentImageFilePath);
+
+	private Gson gson;
 
 	/**
 	 * Constructor.
@@ -34,10 +43,21 @@ public class Preferences {
 			JsonReader reader = new JsonReader(fileReader);
 			Preferences previousPreferences = gson.fromJson(reader, Preferences.class);
 
-			if (null != previousPreferences.currentFilePath) {
-				currentFilePath = previousPreferences.currentFilePath;
-				currentFile = new File(currentFilePath);
+			if (null != previousPreferences.currentEncounterFilePath) {
+				currentEncounterFilePath = previousPreferences.currentEncounterFilePath;
+				currentEncounterFile = new File(currentEncounterFilePath);
 			}
+
+			if (null != previousPreferences.currentEncounterListFilePath) {
+				currentEncounterListFilePath = previousPreferences.currentEncounterListFilePath;
+				currentEncounterListFile = new File(currentEncounterListFilePath);
+			}
+
+			if (null != previousPreferences.currentImageFilePath) {
+				currentImageFilePath = previousPreferences.currentImageFilePath;
+				currentImageFile = new File(currentImageFilePath);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 
@@ -52,23 +72,69 @@ public class Preferences {
 	}
 
 	/**
-	 * Met à jour le fichier en cours d'utilisation et enregistre les préferences.
+	 * Récupère le fichier de rencontre en cours d'utilisation.
 	 * 
 	 * @param file
 	 */
-	public synchronized void setCurrentFile(File file) {
-		currentFilePath = file.getAbsolutePath();
-		currentFile = file;
-		savePreferences();
+	public synchronized File getCurrentEncounterFile() {
+		return currentEncounterFile;
 	}
 
 	/**
-	 * Return current file used by the user and stored in the preferences.
+	 * Récupère le fichier de liste de rencontres en cours d'utilisation.
 	 * 
-	 * @return
+	 * @param file
 	 */
-	public File getCurrentFile() {
-		return currentFile;
+	public synchronized File getCurrentEncounterListFile() {
+		return currentEncounterListFile;
+	}
+
+	/**
+	 * Récupère le dernier fichier image chargé (pour obtenir son répertoire d'origine).
+	 * 
+	 * @param file
+	 */
+	public synchronized File getCurrentImageFile() {
+		return currentImageFile;
+	}
+
+	/**
+	 * Met à jour le fichier de rencontre en cours d'utilisation et enregistre les préferences.
+	 * 
+	 * @param file
+	 */
+	public synchronized void setCurrentEncounterFile(File file) {
+		if (null != file) {
+			currentEncounterFilePath = file.getAbsolutePath();
+			currentEncounterFile = file;
+			savePreferences();
+		}
+	}
+
+	/**
+	 * Met à jour le fichier de liste de rencontres en cours d'utilisation et enregistre les préferences.
+	 * 
+	 * @param file
+	 */
+	public synchronized void setCurrentEncounterListFile(File file) {
+		if (null != file) {
+			currentEncounterListFilePath = file.getAbsolutePath();
+			currentEncounterListFile = file;
+			savePreferences();
+		}
+	}
+
+	/**
+	 * Met à jour le dernier fichier image chargé.
+	 * 
+	 * @param file
+	 */
+	public synchronized void setCurrentImageFile(File file) {
+		if (null != file) {
+			currentImageFilePath = file.getAbsolutePath();
+			currentImageFile = file;
+			savePreferences();
+		}
 	}
 
 	/**

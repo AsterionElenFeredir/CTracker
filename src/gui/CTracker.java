@@ -25,7 +25,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.filechooser.FileFilter;
 
+import utils.Constants;
 import model.Actor;
 import model.Encounter;
 import model.EncounterList;
@@ -46,6 +48,8 @@ public class CTracker extends JFrame {
 	// Panneau principal.
 	private JTabbedPane tabbedPane = new JTabbedPane();
 	private ArrayList<Box> selection = new ArrayList<Box>();
+	private final FileFilter encounterFileFilter;
+	private final FileFilter encounterListFileFilter;
 
 
 	/**
@@ -54,10 +58,28 @@ public class CTracker extends JFrame {
 	 * @return
 	 */
 	public static CTracker getInstance() {
-		if (null == cTracker)
+		if (null == cTracker) {
 			cTracker = new CTracker();
 
+			try {
+				if (Constants.DEFAULT_SAVE_FILE.exists())
+					cTracker.loadEncounterList(Constants.DEFAULT_SAVE_FILE);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		return cTracker;
+	}
+
+	/**
+	 * Return the preferences loaded.
+	 * 
+	 * @return
+	 */
+	public Preferences getPreferences() {
+		return pref;
 	}
 
 	public CTracker(){
@@ -91,6 +113,36 @@ public class CTracker extends JFrame {
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		this.setVisible(true);
+
+		encounterFileFilter = new FileFilter() {
+
+			@Override
+			public String getDescription() {
+				return "Fichiers de Rencontre";
+			}
+
+			@Override
+			public boolean accept(File f) {
+				if(f.isDirectory() || f.getName().endsWith(".enc"))
+					return true;
+				return false;
+			}
+		};
+
+		encounterListFileFilter = new FileFilter() {
+
+			@Override
+			public String getDescription() {
+				return "Fichiers de liste de Rencontres";
+			}
+
+			@Override
+			public boolean accept(File f) {
+				if(f.isDirectory() || f.getName().endsWith(".all"))
+					return true;
+				return false;
+			}
+		};
 	}
 
 	/**
@@ -158,6 +210,7 @@ public class CTracker extends JFrame {
 
 
 		menu.add(addActorMenuItem);
+		menu.add(deleteActorsMenuItem);
 		menu.add(addEncounterMenuItem);
 		menu.addSeparator();
 		menu.add(quickSaveMenuItem);
@@ -167,11 +220,10 @@ public class CTracker extends JFrame {
 		menu.add(quickLoadMenuItem);
 		menu.add(loadMenuItem);
 		menu.add(loadEncounterListMenuItem);
-		menu.add(deleteActorsMenuItem);
 
 		addActorMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,InputEvent.CTRL_MASK));
 		addEncounterMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E,InputEvent.CTRL_MASK));
-		quickSaveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
+		quickSaveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 		quickLoadMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0));
 		deleteActorsMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
 
@@ -214,7 +266,7 @@ public class CTracker extends JFrame {
 			public void actionPerformed(ActionEvent e)
 			{
 				try {
-					saveEncounter(pref.getCurrentFile());
+					saveEncounter(pref.getCurrentEncounterFile());
 
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -227,9 +279,10 @@ public class CTracker extends JFrame {
 			public void actionPerformed(ActionEvent e)
 			{
 				try {
-					File file = chooseFile();
+					File startPath = pref.getCurrentEncounterFile();
+					File file = chooseFile(encounterFileFilter, startPath);
 					if (null != file) {
-						pref.setCurrentFile(file);
+						pref.setCurrentEncounterFile(file);
 						saveEncounter(file);
 					}
 
@@ -244,9 +297,10 @@ public class CTracker extends JFrame {
 			public void actionPerformed(ActionEvent e)
 			{
 				try {
-					File file = chooseFile();
+					File startPath = pref.getCurrentEncounterListFile();
+					File file = chooseFile(encounterListFileFilter, startPath);
 					if (null != file) {
-						pref.setCurrentFile(file);
+						pref.setCurrentEncounterListFile(file);
 						saveAllEncounters(file);
 					}
 
@@ -262,7 +316,7 @@ public class CTracker extends JFrame {
 			{
 				{
 					try {
-						loadEncounter(pref.getCurrentFile());
+						loadEncounter(pref.getCurrentEncounterFile());
 
 					} catch (Exception ex) {
 						ex.printStackTrace();
@@ -277,9 +331,10 @@ public class CTracker extends JFrame {
 			{
 				{
 					try {
-						File file = chooseFile();
+						File startPath = pref.getCurrentEncounterFile();
+						File file = chooseFile(encounterFileFilter, startPath);
 						if (null != file) {
-							pref.setCurrentFile(file);
+							pref.setCurrentEncounterFile(file);
 							loadEncounter(file);
 						}
 					} catch (Exception ex) {
@@ -295,9 +350,10 @@ public class CTracker extends JFrame {
 			{
 				{
 					try {
-						File file = chooseFile();
+						File startPath = pref.getCurrentEncounterListFile();
+						File file = chooseFile(encounterListFileFilter, startPath);
 						if (null != file) {
-							pref.setCurrentFile(file);
+							pref.setCurrentEncounterListFile(file);
 							loadEncounterList(file);
 						}
 					} catch (Exception ex) {
@@ -380,7 +436,8 @@ public class CTracker extends JFrame {
 	public synchronized void sortActorList() {
 		if (tabbedPane.getTabCount() > 0) {
 			EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
-			Collections.sort(encounterPanel.encounter.getActorList());
+			if(null != encounterPanel.encounter)
+				Collections.sort(encounterPanel.encounter.getActorList());
 		}
 	}
 
@@ -402,7 +459,7 @@ public class CTracker extends JFrame {
 		FileWriter fileWriter = null;
 		try {
 			EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
-			fileWriter = new FileWriter(pref.getCurrentFile());
+			fileWriter = new FileWriter(file);
 			gson.toJson(encounterPanel.encounter, fileWriter);
 
 		} catch (Exception e) {
@@ -437,7 +494,7 @@ public class CTracker extends JFrame {
 
 			}
 
-			fileWriter = new FileWriter(pref.getCurrentFile());
+			fileWriter = new FileWriter(file);
 			gson.toJson(encounters, fileWriter);
 
 		} catch (Exception e) {
@@ -463,7 +520,7 @@ public class CTracker extends JFrame {
 	public synchronized void loadEncounter(File file) throws FileNotFoundException {
 		FileReader fileReader = null;
 		try {
-			fileReader = new FileReader(pref.getCurrentFile());
+			fileReader = new FileReader(file);
 			JsonReader reader = new JsonReader(fileReader);
 			Encounter loadedEncounter = gson.fromJson(reader, Encounter.class);
 			setEncounter(loadedEncounter);
@@ -491,7 +548,7 @@ public class CTracker extends JFrame {
 	public synchronized void loadEncounterList(File file) throws FileNotFoundException {
 		FileReader fileReader = null;
 		try {
-			fileReader = new FileReader(pref.getCurrentFile());
+			fileReader = new FileReader(file);
 			JsonReader reader = new JsonReader(fileReader);
 			EncounterList encounterList = gson.fromJson(reader, EncounterList.class);
 
@@ -522,10 +579,12 @@ public class CTracker extends JFrame {
 	 * 
 	 * @return
 	 */
-	public static File chooseFile() {
+	public static File chooseFile(FileFilter filter, File startPath) {
 		try {
 			// création de la boîte de dialogue
-			JFileChooser dialogue = new JFileChooser(pref.getCurrentFile());
+			JFileChooser dialogue = new JFileChooser(startPath.getParentFile());
+			if (null != filter)
+				dialogue.setFileFilter(filter);
 
 			// affichage
 			dialogue.showOpenDialog(null);
@@ -601,6 +660,18 @@ public class CTracker extends JFrame {
 		}
 		repaint();
 	}
+
+	@Override
+	public void dispose() {
+		super.dispose();
+
+		try {
+			saveAllEncounters(Constants.DEFAULT_SAVE_FILE);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }
 
 

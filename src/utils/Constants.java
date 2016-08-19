@@ -24,7 +24,7 @@ public class Constants {
 	private static final String INITIATIVE_ICON_FILE_NAME_PROPERTY = "initiative.icon.filename";
 	private static final String ICON_SIZE_PROPERTY = "icon.size";
 	private static final String HP_PANEL_SIZE_PROPERTY = "hp.panel.size";
-
+	
 	public static final int BOX_SIZE = PropertiesLoader.getValue(BOX_SIZE_PROPERTY);
 	public static final int HP_PANEL_SIZE = PropertiesLoader.getValue(HP_PANEL_SIZE_PROPERTY);
 	public static final int TEST_MODE = PropertiesLoader.getValue(TEST_MODE_PROPERTY);
@@ -47,7 +47,10 @@ public class Constants {
 
 	public static final String JP_REF_ICON_FILE_NAME = PropertiesLoader.getLabel(JP_REF_ICON_FILE_NAME_PROPERTY);
 	public static final int JP_ICON_SIZE = ICON_SIZE;
-
+	
+	/** File used to save all modifications when closing CTracker and to load last encounters when starting CTracker. */
+	public static final File DEFAULT_SAVE_FILE = new File("resources/default.all");
+	
 	public static Image TEST_IMAGE = null;
 	
 	static {

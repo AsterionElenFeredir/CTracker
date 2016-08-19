@@ -247,8 +247,10 @@ public class Box extends JPanel implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (e.getClickCount() == 2) {
-			File file = CTracker.chooseFile();
+		if (e.getButton() > MouseEvent.BUTTON1) {
+			File startFile = CTracker.getInstance().getPreferences().getCurrentImageFile();
+			File file = CTracker.chooseFile(null, startFile);
+			CTracker.getInstance().getPreferences().setCurrentImageFile(file);
 			setActorAndBoxImage(file);
 			this.repaint();
 		} else {

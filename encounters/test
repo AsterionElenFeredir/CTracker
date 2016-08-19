@@ -1,0 +1,29 @@
+{
+  "encounterName": "Enc1",
+  "actorList": [
+    {
+      "imagePath": null,
+      "name": null,
+      "ca": 15,
+      "init": 4,
+      "hp": 40,
+      "currentHp": 40
+    },
+    {
+      "imagePath": null,
+      "name": null,
+      "ca": 21,
+      "init": 2,
+      "hp": 60,
+      "currentHp": 60
+    },
+    {
+      "imagePath": null,
+      "name": null,
+      "ca": 24,
+      "init": 1,
+      "hp": 100,
+      "currentHp": 88
+    }
+  ]
+}
