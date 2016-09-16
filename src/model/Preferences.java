@@ -1,12 +1,10 @@
 package model;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 
-import com.google.gson.Gson;
+import persistence.DataManager;
+
 import com.google.gson.annotations.Expose;
-import com.google.gson.stream.JsonReader;
 
 public class Preferences {
 	@Expose(serialize = true)
@@ -21,53 +19,25 @@ public class Preferences {
 	private String currentImageFilePath = "images/default.jpg";
 	private File currentImageFile = new File(currentImageFilePath);
 
-	private Gson gson;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param gson
-	 */
-	public Preferences(Gson gson) {
-		this.gson = gson;
-	}
-
 	/**
 	 * Load previous preferences save into file.
 	 */
 	public void load() {
-		FileReader fileReader = null;
+		Preferences previousPreferences = DataManager.getPreviousPreferences();
 
-		try {
-			fileReader = new FileReader("resources/preferences");
-			JsonReader reader = new JsonReader(fileReader);
-			Preferences previousPreferences = gson.fromJson(reader, Preferences.class);
+		if (null != previousPreferences.currentEncounterFilePath) {
+			currentEncounterFilePath = previousPreferences.currentEncounterFilePath;
+			currentEncounterFile = new File(currentEncounterFilePath);
+		}
 
-			if (null != previousPreferences.currentEncounterFilePath) {
-				currentEncounterFilePath = previousPreferences.currentEncounterFilePath;
-				currentEncounterFile = new File(currentEncounterFilePath);
-			}
+		if (null != previousPreferences.currentEncounterListFilePath) {
+			currentEncounterListFilePath = previousPreferences.currentEncounterListFilePath;
+			currentEncounterListFile = new File(currentEncounterListFilePath);
+		}
 
-			if (null != previousPreferences.currentEncounterListFilePath) {
-				currentEncounterListFilePath = previousPreferences.currentEncounterListFilePath;
-				currentEncounterListFile = new File(currentEncounterListFilePath);
-			}
-
-			if (null != previousPreferences.currentImageFilePath) {
-				currentImageFilePath = previousPreferences.currentImageFilePath;
-				currentImageFile = new File(currentImageFilePath);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		} finally {
-			try {
-				if (null != fileReader)
-					fileReader.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} 
+		if (null != previousPreferences.currentImageFilePath) {
+			currentImageFilePath = previousPreferences.currentImageFilePath;
+			currentImageFile = new File(currentImageFilePath);
 		}
 	}
 
@@ -107,7 +77,7 @@ public class Preferences {
 		if (null != file) {
 			currentEncounterFilePath = file.getAbsolutePath();
 			currentEncounterFile = file;
-			savePreferences();
+			DataManager.savePreferences(this);
 		}
 	}
 
@@ -120,7 +90,7 @@ public class Preferences {
 		if (null != file) {
 			currentEncounterListFilePath = file.getAbsolutePath();
 			currentEncounterListFile = file;
-			savePreferences();
+			DataManager.savePreferences(this);
 		}
 	}
 
@@ -133,30 +103,7 @@ public class Preferences {
 		if (null != file) {
 			currentImageFilePath = file.getAbsolutePath();
 			currentImageFile = file;
-			savePreferences();
-		}
-	}
-
-	/**
-	 * Save preferences to file.
-	 */
-	private synchronized void savePreferences() {
-		FileWriter fileWriter = null;
-
-		try {
-			fileWriter = new FileWriter("resources/preferences");
-			gson.toJson(this, fileWriter);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-
-		} finally {
-			try {
-				if (null != fileWriter)
-					fileWriter.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} 
+			DataManager.savePreferences(this);
 		}
 	}
 }

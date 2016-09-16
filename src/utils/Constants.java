@@ -8,6 +8,9 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 
 public class Constants {
 	private static final String TEST_MODE_PROPERTY = "test";

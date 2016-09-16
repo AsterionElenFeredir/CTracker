@@ -2,12 +2,17 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -16,11 +21,17 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 
+import persistence.DataManager;
 import model.Actor;
 import utils.Constants;
 import utils.ImagesConstants;
@@ -41,6 +52,8 @@ public class Box extends JPanel implements MouseListener {
 	private final Border blackBorder = BorderFactory.createLineBorder(Color.BLACK, 5);
 	private final Border redBorder = BorderFactory.createLineBorder(Color.RED,5);
 	private boolean isHighlighted = false;
+	private JPopupMenu popup = new JPopupMenu();
+;
 
 	/**
 	 * Constructor.
@@ -76,11 +89,50 @@ public class Box extends JPanel implements MouseListener {
 		c.weighty = 0.2;
 		add(new HPPanel(actor), c);
 
+		buildPopupMenu();
+		
 		addMouseListener(this);
 		setBorder(blackBorder);
 		setFocusable(true);
 	}
 
+	/**
+	 * Build Popup Menu.
+	 */
+	public void buildPopupMenu() {
+		JMenuItem deleteActorsMenuItem = new JMenuItem("Supprimer les acteurs sélectionnés");
+		JMenuItem loadImageMenuItem = new JMenuItem("Charger une image");
+		
+		deleteActorsMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+		loadImageMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_MASK));
+		
+		popup.add(deleteActorsMenuItem);
+		popup.add(loadImageMenuItem);
+
+	    popup.setBorder(new BevelBorder(BevelBorder.RAISED));
+
+		deleteActorsMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Container container = getParent();
+				if (container instanceof EncounterPanel) {
+					((EncounterPanel)container).removeSelectedBoxes();
+				}
+			}
+		});
+
+		loadImageMenuItem.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				EncounterPanel encounterPanel = (EncounterPanel)getParent();
+				DataManager.loadImage(encounterPanel);
+			}
+		});
+
+	}
+	
 	/**
 	 * Return the actor.
 	 * 
@@ -139,20 +191,7 @@ public class Box extends JPanel implements MouseListener {
 		label.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				String value = JOptionPane.showInputDialog(null,
-						"Enter new value",
-						"Enter value",
-						JOptionPane.QUESTION_MESSAGE);
-
-				try {
-					if(null != value && value.length() > 0) {
-						int intValue = (Integer.parseInt(value));
-						caIconLabel.setText(value);
-						actor.ca = intValue;
-					}
-				} catch (Exception ex) {
-
-				}
+				
 			}
 
 			@Override
@@ -193,7 +232,12 @@ public class Box extends JPanel implements MouseListener {
 						int intValue = (Integer.parseInt(value));
 						initIconLabel.setText(value);
 						actor.init = intValue;
-						CTracker.getInstance().rebuild();
+						
+						JTabbedPane tabbedPane = CTracker.getInstance().getTabbedPane();
+						if (tabbedPane.getTabCount() > 0) {
+							EncounterPanel encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
+							encounterPanel.rebuild();
+						}
 					}
 				} catch (Exception ex) {
 
@@ -224,11 +268,13 @@ public class Box extends JPanel implements MouseListener {
 	public void swichtSelection() {
 		if(isHighlighted) {
 			setBorder(blackBorder);
-			CTracker.getInstance().removeSelection(this);
+			EncounterPanel encounterPanel = (EncounterPanel)getParent();
+			encounterPanel.removeSelection(this);
 		}
 		else {
 			setBorder(redBorder);
-			CTracker.getInstance().addSelection(this);
+			EncounterPanel encounterPanel = (EncounterPanel)getParent();
+			encounterPanel.addSelection(this);
 		}
 
 		isHighlighted=!isHighlighted;
@@ -247,24 +293,20 @@ public class Box extends JPanel implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (e.getButton() > MouseEvent.BUTTON1) {
-			File startFile = CTracker.getInstance().getPreferences().getCurrentImageFile();
-			File file = CTracker.chooseFile(null, startFile);
-			CTracker.getInstance().getPreferences().setCurrentImageFile(file);
-			setActorAndBoxImage(file);
-			this.repaint();
-		} else {
-			swichtSelection();		
-		}
+		if (e.getButton() == MouseEvent.BUTTON1)
+			swichtSelection();
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		//		swichtSelection();		
+		if (e.isPopupTrigger())
+			popup.show(this, e.getX(), e.getY());
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		if (e.isPopupTrigger())
+			popup.show(this, e.getX(), e.getY());
 	}
 
 	@Override
@@ -284,7 +326,7 @@ public class Box extends JPanel implements MouseListener {
 			g.drawImage(Constants.TEST_IMAGE, 0, 0, getWidth(), getHeight(), null);
 		}
 	}
-
+	
 	/**
 	 * Set the image of the BOX.
 	 * 
@@ -315,6 +357,7 @@ public class Box extends JPanel implements MouseListener {
 					image = ImageIO.read(file);
 					actor.imagePath = file.getPath();
 				}
+				repaint();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
