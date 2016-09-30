@@ -5,6 +5,10 @@ import gui.CTracker;
 public class Main {
 
 	public static void main(String[] args) {
-		CTracker.getInstance();
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	CTracker.createAndShowUI();
+            }
+        });
 	}
 }

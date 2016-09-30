@@ -24,6 +24,14 @@
       "init": 1,
       "hp": 100,
       "currentHp": 88
+    },
+    {
+      "imagePath": null,
+      "name": null,
+      "ca": 0,
+      "init": 0,
+      "hp": 0,
+      "currentHp": 0
     }
   ]
 }

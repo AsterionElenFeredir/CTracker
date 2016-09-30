@@ -26,33 +26,16 @@
           "init": 1,
           "hp": 100,
           "currentHp": 88
-        }
-      ]
-    },
-    {
-      "encounterName": "Enc2",
-      "actorList": [
-        {
-          "imagePath": null,
-          "name": null,
-          "ca": 21,
-          "init": 2,
-          "hp": 60,
-          "currentHp": 60
         },
         {
           "imagePath": null,
           "name": null,
-          "ca": 24,
-          "init": 1,
-          "hp": 100,
-          "currentHp": 88
+          "ca": 0,
+          "init": 0,
+          "hp": 0,
+          "currentHp": 0
         }
       ]
-    },
-    {
-      "encounterName": "New Encounter",
-      "actorList": []
     }
   ]
 }

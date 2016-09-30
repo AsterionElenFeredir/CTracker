@@ -1,7 +1,6 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.google.gson.annotations.Expose;
 
@@ -10,7 +9,7 @@ public class Encounter {
 	public String encounterName = null;
 	
 	@Expose(serialize = true)
-	private List<Actor> actorList = new ArrayList<Actor>();
+	private ArrayList<Actor> actorList = new ArrayList<Actor>();
 
 	/**
 	 * Constructor.
@@ -19,11 +18,11 @@ public class Encounter {
 		this.encounterName = name;
 	}
 	
-	public List<Actor> getActorList() {
+	public ArrayList<Actor> getActorList() {
 		return actorList;
 	}
 
-	public void setActorList(List<Actor> actorList) {
+	public void setActorList(ArrayList<Actor> actorList) {
 		this.actorList = actorList;
 	}
 	

@@ -8,12 +8,12 @@ import java.awt.Insets;
 
 import javax.swing.JPanel;
 
-import model.Actor;
 import utils.Constants;
+import model.Actor;
 
 public class HPPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private Actor actor;
 	JPanel hpLostPanel;
 	JPanel hpMaxPanel;
@@ -28,7 +28,7 @@ public class HPPanel extends JPanel {
 		super();
 		this.actor = actor;
 
-		setPreferredSize(new Dimension (Constants.BOX_SIZE, Constants.HP_PANEL_SIZE));
+		setPreferredSize(new Dimension (Constants.ICON_SIZE, Constants.HP_PANEL_SIZE));
 		setLayout(new GridBagLayout());
 		setOpaque(false);
 		c.fill = GridBagConstraints.BOTH;
@@ -43,14 +43,8 @@ public class HPPanel extends JPanel {
 		hpLostPanel = new JPanel();
 		hpMaxPanel = new JPanel();
 
-		if(Constants.TEST_MODE == 0)
-		{
-			hpLostPanel.setBackground(Color.GREEN);
-			hpMaxPanel.setBackground(Color.RED);
-		} else {
-			hpLostPanel.setBackground(Color.GRAY);
-			hpMaxPanel.setBackground(Color.BLACK);
-		}
+		hpLostPanel.setBackground(new Color(Color.GREEN.getRed(), Color.GREEN.getGreen(), Color.GREEN.getBlue(),128));
+		hpMaxPanel.setBackground(new Color(Color.RED.getRed(), Color.RED.getGreen(), Color.RED.getBlue(),128));
 
 		float ratio = ((float)actor.currentHp/(float)actor.hp);
 
@@ -76,7 +70,7 @@ public class HPPanel extends JPanel {
 			add(hpMaxPanel, c);
 		}
 	}
-	
+
 	/**
 	 * Return the actor associated to this HPPanel.
 	 * 
@@ -85,7 +79,7 @@ public class HPPanel extends JPanel {
 	public Actor getActor() {
 		return actor;
 	}
-	
+
 	/**
 	 * Update the HPPanel.
 	 */

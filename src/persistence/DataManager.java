@@ -1,5 +1,7 @@
 package persistence;
 
+import gui.ActorsOrderPanel;
+import gui.Box;
 import gui.CTracker;
 import gui.EncounterPanel;
 
@@ -9,15 +11,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
-import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileFilter;
 
-import utils.Constants;
+import model.Actor;
 import model.Encounter;
 import model.EncounterList;
 import model.Preferences;
+import utils.Constants;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -77,6 +80,13 @@ public class DataManager {
 	 * @throws IOException
 	 */
 	private static void saveEncounter(File file, EncounterPanel encounterPanel) throws IOException {
+		// Build Actor list.
+		ArrayList<Actor> actorList = encounterPanel.encounter.getActorList();
+		actorList.clear();
+		for (Box box : encounterPanel.getBoxActors()) {
+			actorList.add(box.getActor());
+		}
+		
 		FileWriter fileWriter = null;
 		try {
 			fileWriter = new FileWriter(file);
@@ -109,6 +119,14 @@ public class DataManager {
 			for (Component comp : CTracker.getInstance().getTabbedPane().getComponents()) {
 				if (comp instanceof EncounterPanel) {
 					EncounterPanel encounterPanel = (EncounterPanel)comp;
+					
+					// Build Actor list.
+					ArrayList<Actor> actorList = encounterPanel.encounter.getActorList();
+					actorList.clear();
+					for (Box box : encounterPanel.getBoxActors()) {
+						actorList.add(box.getActor());
+					}
+					
 					encounters.add(encounterPanel.encounter);
 				}
 
@@ -172,8 +190,7 @@ public class DataManager {
 			JsonReader reader = new JsonReader(fileReader);
 			EncounterList encounterList = GSON_BUILDER.fromJson(reader, EncounterList.class);
 
-			JTabbedPane tabbedPane = CTracker.getInstance().getTabbedPane();
-			tabbedPane.removeAll();
+			CTracker.getInstance().getTabbedPane().removeAll();
 
 			for (Encounter encounter : encounterList.encounters) {
 				CTracker.getInstance().addEncounter(encounter);
@@ -372,10 +389,10 @@ public class DataManager {
 		return preferences;
 	}
 	
-	public static synchronized void loadImage(EncounterPanel encounterPanel) {
+	public static synchronized void loadImage(ActorsOrderPanel actorsOrderPanel) {
 		File startFile = preferences.getCurrentImageFile();
 		File file = chooseFile(null, startFile);
 		preferences.setCurrentImageFile(file);
-		encounterPanel.setActorAndBoxImage(file);
+		actorsOrderPanel.setActorAndBoxImage(file);
 	}
 }

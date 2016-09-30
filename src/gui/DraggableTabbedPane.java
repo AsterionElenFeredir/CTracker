@@ -28,7 +28,7 @@ public class DraggableTabbedPane extends JTabbedPane {
 		editableTabbedPaneListener = new EditableTabbedPaneListener(this);
 		addChangeListener(editableTabbedPaneListener);
 		addMouseListener(editableTabbedPaneListener);
-		
+
 		addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseDragged(MouseEvent e) {
 
@@ -63,7 +63,7 @@ public class DraggableTabbedPane extends JTabbedPane {
 					// Need to repaint
 					repaint();
 				}
-				
+
 				super.mouseDragged(e);
 			}
 		});
@@ -86,7 +86,7 @@ public class DraggableTabbedPane extends JTabbedPane {
 
 				dragging = false;
 				tabImage = null;
-				
+
 				// Repaint car si l'onglet va trop loin, une image rémanente de ce dernier reste tant que l'on ne survole pas un autre onglet.
 				CTracker.getInstance().repaint();
 			}
@@ -102,4 +102,26 @@ public class DraggableTabbedPane extends JTabbedPane {
 			g.drawImage(tabImage, currentMouseLocation.x, currentMouseLocation.y, this);
 		}
 	}
+
+	@Override
+	public void remove(Component component) {
+		super.remove(component);
+		
+		// Si plus d'onglet, on en créé un pour ne jamais se retrouver sans onglet.
+		if (getTabCount() == 0) {
+			CTracker.getInstance().addEncounter("New Encounter");
+		}
+	}
+
+	@Override
+	public void remove(int index) {
+		super.remove(index);
+		
+		// Si plus d'onglet, on en créé un pour ne jamais se retrouver sans onglet.
+		if (getTabCount() == 0) {
+			CTracker.getInstance().addEncounter("New Encounter");
+		}
+	}
+
+
 }

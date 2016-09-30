@@ -1,0 +1,33 @@
+{
+  "encounters": [
+    {
+      "encounterName": "New Encounter",
+      "actorList": [
+        {
+          "imagePath": null,
+          "name": null,
+          "ca": 12,
+          "init": 0,
+          "hp": 0,
+          "currentHp": 0
+        },
+        {
+          "imagePath": null,
+          "name": null,
+          "ca": 20,
+          "init": 0,
+          "hp": 0,
+          "currentHp": 0
+        },
+        {
+          "imagePath": null,
+          "name": null,
+          "ca": 31,
+          "init": 0,
+          "hp": 0,
+          "currentHp": 0
+        }
+      ]
+    }
+  ]
+}

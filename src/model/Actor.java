@@ -62,4 +62,13 @@ public class Actor implements Comparable<Actor> {
 		// Equals.
 		return 0;
 	}
+	
+	/**
+	 * Update the hidden values of the actor from another actor.
+	 * 
+	 * @param actor
+	 */
+	public void updateHiddenValues(Actor actor) {
+		this.init = actor.init;
+	}
 }

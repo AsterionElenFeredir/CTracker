@@ -116,13 +116,15 @@ public class EditableTabbedPaneListener extends MouseAdapter implements ChangeLi
 	}
 	
 	@Override public void changedUpdate(DocumentEvent e) { /* not needed */ }
-	
+
 	@Override public void mouseClicked(MouseEvent e) {
-		Rectangle r = tabbedPane.getUI().getTabBounds(tabbedPane, tabbedPane.getSelectedIndex());
-		if (r.contains(e.getPoint()) && e.getClickCount() == 2) {
-			startEditing.actionPerformed(null);
-		} else {
-			renameTabTitle.actionPerformed(null);
+		if (tabbedPane.getComponents().length > 0) {
+			Rectangle r = tabbedPane.getUI().getTabBounds(tabbedPane, tabbedPane.getSelectedIndex());
+			if (r.contains(e.getPoint()) && e.getClickCount() == 2) {
+				startEditing.actionPerformed(null);
+			} else {
+				renameTabTitle.actionPerformed(null);
+			}
 		}
 	}
 	

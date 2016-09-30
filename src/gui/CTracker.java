@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -10,13 +11,13 @@ import java.util.Collections;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 
 import model.Encounter;
 import persistence.DataManager;
@@ -29,7 +30,7 @@ public class CTracker extends JFrame {
 
 	// Panneau principal.
 	private final JTabbedPane tabbedPane;
-
+	
 	/**
 	 * Constructor.
 	 * 
@@ -48,33 +49,29 @@ public class CTracker extends JFrame {
 
 	public CTracker() {
 		
-//		UIDefaults def = UIManager.getLookAndFeelDefaults();
-//        def.put( "TabbedPane.foreground", Color.RED );
-//        def.put( "TabbedPane.textIconGap", new Integer(16) );
-//        def.put( "TabbedPane.background", Color.BLUE );
+		UIDefaults def = UIManager.getLookAndFeelDefaults();
+        def.put( "TabbedPane.foreground", Color.RED );
+        def.put( "TabbedPane.textIconGap", new Integer(26) );
+        def.put( "TabbedPane.background", Color.BLUE );
 //        def.put( "TabbedPane.tabsOverlapBorder", true);
-//        def.put( "TabbedPane.contentBorderInsets", new Insets(0,0,0,0) );
-//		this.setUndecorated(true);
+        def.put( "TabbedPane.contentBorderInsets", new Insets(0,0,0,0) );
+		this.setUndecorated(true);
 
-		this.setTitle("Test");
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		tabbedPane = new DraggableTabbedPane();
+
 		tabbedPane.setBackground(Color.BLACK);
-		JPanel panel = new JPanel();
-		panel.setBackground(Color.black);
-		JLabel label = new JLabel("toto");
-		label.setOpaque(true);
-		label.setBackground(Color.black);
-		tabbedPane.addTab("Test", label);
+//		tabbedPane.setForeground(Color.red);
 		this.getContentPane().add(tabbedPane);
 
 		this.setTitle("CTracker");
 		this.setIconImage(new ImageIcon("images/dd_sigle.png").getImage());
 
-		// Construction de la barre de menu.
-		buildMenuBar();
+		// Plus de barre de menu : le menu contextuel suffit et permet de mettre une image en premier plan.
+		// On verra ensuite si je la remet au cas ou il y aurai des fonctionnalités supplémentaires fournies (comme une MAP fullscreen avec des outils)
+//		buildMenuBar();
 		
 		this.pack();
 		JFrame.setDefaultLookAndFeelDecorated(true);
@@ -267,10 +264,10 @@ public class CTracker extends JFrame {
 			encounterPanel = (EncounterPanel)tabbedPane.getSelectedComponent();
 			encounterPanel.encounter = encounter;
 			tabbedPane.setTitleAt(index, encounter.encounterName);
-			encounterPanel.rebuild();
+			encounterPanel.resetActors();
 		}
 	}
-
+	
 	/**
 	 * Add an Encounter tab.
 	 */
@@ -280,7 +277,6 @@ public class CTracker extends JFrame {
 		tabbedPane.setSelectedComponent(encounterPanel);
 		int index = tabbedPane.getSelectedIndex();
 		tabbedPane.setTabComponentAt(index, new ButtonTabComponent(tabbedPane));
-		encounterPanel.rebuild();
 	}
 
 	/**
@@ -292,7 +288,7 @@ public class CTracker extends JFrame {
 		tabbedPane.setSelectedComponent(encounterPanel);
 		int index = tabbedPane.getSelectedIndex();
 		tabbedPane.setTabComponentAt(index, new ButtonTabComponent(tabbedPane));
-		encounterPanel.rebuild();
+		encounterPanel.fillActors();
 	}
 
 	/**
@@ -306,6 +302,13 @@ public class CTracker extends JFrame {
 	public void dispose() {
 		super.dispose();
 		DataManager.quickSaveEncounterlist();
+	}
+	
+	/**
+	 * Create and show UI.
+	 */
+	public static void createAndShowUI() {
+		getInstance();
 	}
 }
 
